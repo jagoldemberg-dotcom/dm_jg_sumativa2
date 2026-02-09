@@ -1,6 +1,6 @@
-# Sumativa 1 - Semana 2 (Kotlin / Android Studio)
+# Sumativa 2 - Semana 5 (Integrando Kotlin / Android Studio)
 
-Proyecto base adaptado para cumplir `instrucciones.docx` y la pauta de evaluacion.
+Proyecto basado en la experiencia 1, adaptado para cumplir `instrucciones.docx` (Sumativa 2) y `pauta_de_evaluacion.docx`.
 
 ## Requisitos cubiertos (resumen)
 - SplashScreen
@@ -25,3 +25,9 @@ Proyecto base adaptado para cumplir `instrucciones.docx` y la pauta de evaluacio
 ## Notas
 - El almacen de usuarios es en memoria (`UserStore`), no persiste al cerrar la app.
 - Las integraciones con redes sociales y recuperacion son simuladas.
+
+
+## Kotlin (Sumativa 2)
+- `UserStore` mantiene un `Array<User?>` de tamaño 5 como fuente de verdad (usuarios + contraseñas).
+- La UI usa una lista observable para refrescar Tabla/Grilla.
+- Validaciones simples en `Validators.kt`.
