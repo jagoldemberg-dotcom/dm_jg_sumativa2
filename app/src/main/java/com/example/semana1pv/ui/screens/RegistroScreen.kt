@@ -58,6 +58,8 @@ import com.example.semana1pv.ui.theme.BandGreen
 import com.example.semana1pv.ui.theme.BordernSoft
 import com.example.semana1pv.ui.theme.TextDark
 import com.example.semana1pv.ui.theme.TextMuted
+import com.example.semana1pv.util.Validators
+import com.example.semana1pv.util.onlyDigits
 import kotlinx.coroutines.launch
 
 @Composable
@@ -144,7 +146,7 @@ fun RegistroScreen(
                     color = TextDark
                 )
                 Text(
-                    text = "Maximo 5 usuarios - actuales: ${UserStore.users.size}/5",
+                    text = "Maximo 5 usuarios - actuales: ${UserStore.count()}/5",
                     color = TextMuted
                 )
 
@@ -337,19 +339,36 @@ fun RegistroScreen(
                                         snackbarHostState.showSnackbar("No se pueden registrar mas de 5 usuarios")
                                         return@launch
                                     }
+
+                                    // Validaciones Kotlin (sin backend)
+                                    if (!Validators.isValidRut(rut)) {
+                                        snackbarHostState.showSnackbar("RUT invalido. Ej: 12345678-9")
+                                        return@launch
+                                    }
+                                    if (!Validators.isValidPhone(telefono)) {
+                                        snackbarHostState.showSnackbar("Telefono invalido (solo digitos, 8 a 12)")
+                                        return@launch
+                                    }
+                                    if (!Validators.isValidEmail(email)) {
+                                        snackbarHostState.showSnackbar("Correo invalido. Ej: usuario@dominio.cl")
+                                        return@launch
+                                    }
                                     if (!canSubmit) {
                                         snackbarHostState.showSnackbar("Completa campos, confirma contrasena y selecciona al menos 1 ayuda")
                                         return@launch
                                     }
 
                                     val user = User(
-                                        email = email.trim(),
+                                        email = email.trim().lowercase(),
                                         password = password,
-                                        nombreCompleto = "$nombre $apellidoPaterno $apellidoMaterno".trim(),
-                                        rut = rut.trim(),
+                                        nombreCompleto = listOf(nombre, apellidoPaterno, apellidoMaterno)
+                                        .map { it.trim() }
+                                        .filter { it.isNotEmpty() }
+                                        .joinToString(" "),
+                                        rut = rut.trim().replace(".", "").uppercase(),
                                         region = region,
                                         comuna = comuna.trim(),
-                                        telefono = telefono.trim(),
+                                        telefono = telefono.onlyDigits(),
                                         modoLectura = modoLectura,
                                         ayudasVisuales = ayudasSeleccionadas.toList()
                                     )

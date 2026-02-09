@@ -55,6 +55,7 @@ import com.example.semana1pv.ui.theme.BandGreen
 import com.example.semana1pv.ui.theme.BordernSoft
 import com.example.semana1pv.ui.theme.TextDark
 import com.example.semana1pv.ui.theme.TextMuted
+import com.example.semana1pv.util.Validators
 import kotlinx.coroutines.launch
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
@@ -217,7 +218,7 @@ fun LoginScreen(
                                 .padding(horizontal = 12.dp),
                             horizontalArrangement = Arrangement.End
                         ) {
-                            LinkText(text = "REcupera tu contrasenia?", onClick = onForgotClick)
+                            LinkText(text = "Recupera tu contrasenia?", onClick = onForgotClick)
                         }
 
                         Spacer(modifier = Modifier.height(6.dp))
@@ -227,6 +228,11 @@ fun LoginScreen(
                                 scope.launch {
                                     if (email.isBlank() || password.isBlank()) {
                                         snackbarHostState.showSnackbar("Completa correo y contrasena")
+                                        return@launch
+                                    }
+
+                                    if (!Validators.isValidEmail(email)) {
+                                        snackbarHostState.showSnackbar("Correo invalido")
                                         return@launch
                                     }
                                     if (UserStore.users.isEmpty()) {

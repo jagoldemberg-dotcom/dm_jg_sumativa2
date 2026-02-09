@@ -47,6 +47,7 @@ import com.example.semana1pv.ui.theme.BackgroundLigth
 import com.example.semana1pv.ui.theme.BandGreen
 import com.example.semana1pv.ui.theme.TextDark
 import com.example.semana1pv.ui.theme.TextMuted
+import com.example.semana1pv.util.Validators
 import kotlinx.coroutines.launch
 
 @Composable
@@ -149,6 +150,11 @@ fun RecuperarScreen(
                                     if (email.isBlank()) {
                                         snackbarHostState.showSnackbar("Ingresa un correo")
                                     } else {
+                                        if (!Validators.isValidEmail(email)) {
+                                            snackbarHostState.showSnackbar("Correo invalido")
+                                            return@launch
+                                        }
+
                                         snackbarHostState.showSnackbar(
                                             "Solicitud enviada por $canalSeleccionado - $tipoSeleccionado (simulado)"
                                         )
