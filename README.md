@@ -1,6 +1,5 @@
-# Sumativa 2 - Semana 5 (Integrando Kotlin / Android Studio)
+# Sumativa 2 - Semana 5 (Integrando Kotlin )
 
-Proyecto basado en la experiencia 1, adaptado para cumplir `instrucciones.docx` (Sumativa 2) y `pauta_de_evaluacion.docx`.
 
 ## Requisitos cubiertos (resumen)
 - SplashScreen
@@ -27,7 +26,7 @@ Proyecto basado en la experiencia 1, adaptado para cumplir `instrucciones.docx` 
 - Las integraciones con redes sociales y recuperacion son simuladas.
 
 
-## Kotlin (Sumativa 2)
+## Kotlin 
 - `UserStore` mantiene un `Array<User?>` de tamaño 5 como fuente de verdad (usuarios + contraseñas).
 - La UI usa una lista observable para refrescar Tabla/Grilla.
 - Validaciones simples en `Validators.kt`.
