@@ -24,7 +24,8 @@ fun UserGrid(users: List<User>, modifier: Modifier = Modifier) {
         contentPadding = PaddingValues(8.dp),
         verticalArrangement = Arrangement.spacedBy(8.dp),
         horizontalArrangement = Arrangement.spacedBy(8.dp),
-        modifier = modifier.fillMaxWidth()
+        modifier = modifier.fillMaxWidth(),
+        userScrollEnabled = false // ✅ CLAVE: evita scroll anidado -> no crashea
     ) {
         items(users) { u ->
             Card(

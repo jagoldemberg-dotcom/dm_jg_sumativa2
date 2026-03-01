@@ -4,7 +4,9 @@ import androidx.compose.runtime.Composable
 import androidx.navigation.NavHostController
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
-import com.example.semana1pv.ui.screens.HomeScreen
+import com.example.semana1pv.ui.screens.HomeMenuScreen
+import com.example.semana1pv.ui.screens.EscribirScreen
+import com.example.semana1pv.ui.screens.HablarScreen
 import com.example.semana1pv.ui.screens.LoginScreen
 import com.example.semana1pv.ui.screens.RecuperarScreen
 import com.example.semana1pv.ui.screens.RegistroScreen
@@ -16,6 +18,8 @@ sealed class Screen(val route: String) {
     object Registro : Screen("registro")
     object Recuperar : Screen("recuperar")
     object Home : Screen("home")
+    object Escribir : Screen("escribir")
+    object Hablar : Screen("hablar")
 }
 
 @Composable
@@ -66,8 +70,19 @@ fun NavGraph(navController: NavHostController) {
             )
         }
 
+
+        composable(Screen.Escribir.route) {
+            EscribirScreen(onBack = { navController.popBackStack() })
+        }
+
+        composable(Screen.Hablar.route) {
+            HablarScreen(onBack = { navController.popBackStack() })
+        }
+
         composable(Screen.Home.route) {
-            HomeScreen(
+            HomeMenuScreen(
+                onEscribir = { navController.navigate(Screen.Escribir.route) },
+                onHablar = { navController.navigate(Screen.Hablar.route) },
                 onLogout = {
                     navController.navigate(Screen.Login.route) {
                         popUpTo(Screen.Home.route) { inclusive = true }
