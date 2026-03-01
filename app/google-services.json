@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "1054223216773",
+    "project_id": "sumativa3-4ddf6",
+    "storage_bucket": "sumativa3-4ddf6.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:1054223216773:android:03916215f8d7921e4bb9ec",
+        "android_client_info": {
+          "package_name": "com.example.semana1pv"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyAZAOnhbBNTS1V86RW0s0JUHKPrxwXM-_k"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}

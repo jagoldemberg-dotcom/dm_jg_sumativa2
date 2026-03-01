@@ -22,6 +22,7 @@ import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.Checkbox
 import androidx.compose.material3.CheckboxDefaults
 import androidx.compose.material3.Divider
+import androidx.compose.material3.DropdownMenuItem
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.ExposedDropdownMenuBox
 import androidx.compose.material3.ExposedDropdownMenuDefaults
@@ -35,6 +36,8 @@ import androidx.compose.material3.SnackbarHostState
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateListOf
 import androidx.compose.runtime.mutableStateOf
@@ -46,6 +49,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
+import androidx.lifecycle.viewmodel.compose.viewModel
 import com.example.semana1pv.data.User
 import com.example.semana1pv.data.UserStore
 import com.example.semana1pv.ui.componentes.AppOutlinedTextField
@@ -58,12 +62,14 @@ import com.example.semana1pv.ui.theme.BandGreen
 import com.example.semana1pv.ui.theme.BordernSoft
 import com.example.semana1pv.ui.theme.TextDark
 import com.example.semana1pv.ui.theme.TextMuted
+import com.example.semana1pv.ui.viewmodel.AuthState
+import com.example.semana1pv.ui.viewmodel.AuthViewModel
 import com.example.semana1pv.util.Validators
 import com.example.semana1pv.util.onlyDigits
 import kotlinx.coroutines.launch
 
-@Composable
 @OptIn(ExperimentalMaterial3Api::class)
+@Composable
 fun RegistroScreen(
     onLoginClick: () -> Unit = {}
 ) {
@@ -113,19 +119,29 @@ fun RegistroScreen(
 
     val canSubmit =
         rut.isNotBlank() &&
-            nombre.isNotBlank() &&
-            apellidoPaterno.isNotBlank() &&
-            apellidoMaterno.isNotBlank() &&
-            comuna.isNotBlank() &&
-            telefono.isNotBlank() &&
-            email.isNotBlank() &&
-            password.isNotBlank() &&
-            confirmPassword.isNotBlank() &&
-            password == confirmPassword &&
-            ayudasSeleccionadas.isNotEmpty()
+                nombre.isNotBlank() &&
+                apellidoPaterno.isNotBlank() &&
+                apellidoMaterno.isNotBlank() &&
+                comuna.isNotBlank() &&
+                telefono.isNotBlank() &&
+                email.isNotBlank() &&
+                password.isNotBlank() &&
+                confirmPassword.isNotBlank() &&
+                password == confirmPassword &&
+                ayudasSeleccionadas.isNotEmpty()
 
     val snackbarHostState = remember { SnackbarHostState() }
     val scope = rememberCoroutineScope()
+
+    val authVm: AuthViewModel = viewModel()
+    val authState by authVm.state.collectAsState()
+
+    LaunchedEffect(authState) {
+        when (authState) {
+            is AuthState.Error -> snackbarHostState.showSnackbar((authState as AuthState.Error).message)
+            else -> Unit
+        }
+    }
 
     Surface(modifier = Modifier.fillMaxSize(), color = BackgroundLigth) {
         Scaffold(
@@ -146,7 +162,7 @@ fun RegistroScreen(
                     color = TextDark
                 )
                 Text(
-                    text = "Maximo 5 usuarios - actuales: ${UserStore.count()}/5",
+                    text = "Maximo 5 usuarios (memoria) - actuales: ${UserStore.count()}/5",
                     color = TextMuted
                 )
 
@@ -228,7 +244,7 @@ fun RegistroScreen(
                                 onDismissRequest = { regionMenuExpanded = false }
                             ) {
                                 regiones.forEach { r ->
-                                    androidx.compose.material3.DropdownMenuItem(
+                                    DropdownMenuItem(
                                         text = { Text(r) },
                                         onClick = {
                                             region = r
@@ -335,12 +351,12 @@ fun RegistroScreen(
                         Button(
                             onClick = {
                                 scope.launch {
+                                    // ✅ límite de 5 usuarios: se mantiene como requisito "en memoria"
                                     if (!UserStore.canRegisterMore()) {
-                                        snackbarHostState.showSnackbar("No se pueden registrar mas de 5 usuarios")
+                                        snackbarHostState.showSnackbar("No se pueden registrar mas de 5 usuarios (memoria)")
                                         return@launch
                                     }
 
-                                    // Validaciones Kotlin (sin backend)
                                     if (!Validators.isValidRut(rut)) {
                                         snackbarHostState.showSnackbar("RUT invalido. Ej: 12345678-9")
                                         return@launch
@@ -362,9 +378,9 @@ fun RegistroScreen(
                                         email = email.trim().lowercase(),
                                         password = password,
                                         nombreCompleto = listOf(nombre, apellidoPaterno, apellidoMaterno)
-                                        .map { it.trim() }
-                                        .filter { it.isNotEmpty() }
-                                        .joinToString(" "),
+                                            .map { it.trim() }
+                                            .filter { it.isNotEmpty() }
+                                            .joinToString(" "),
                                         rut = rut.trim().replace(".", "").uppercase(),
                                         region = region,
                                         comuna = comuna.trim(),
@@ -373,15 +389,37 @@ fun RegistroScreen(
                                         ayudasVisuales = ayudasSeleccionadas.toList()
                                     )
 
-                                    val result = UserStore.addUser(user)
-                                    if (result.isSuccess) {
-                                        snackbarHostState.showSnackbar("Usuario registrado")
-                                        // limpiar basico
-                                        rut = ""; nombre = ""; apellidoPaterno = ""; apellidoMaterno = ""; comuna = ""; telefono = ""
-                                        email = ""; password = ""; confirmPassword = ""
-                                        ayudasSeleccionadas.clear()
-                                    } else {
-                                        snackbarHostState.showSnackbar(result.exceptionOrNull()?.message ?: "No se pudo registrar")
+                                    // ✅ Guardado local (requisito Sumativa 2) - opcional pero útil para tabla/grilla
+                                    val local = UserStore.addUser(user)
+                                    if (local.isFailure) {
+                                        snackbarHostState.showSnackbar(local.exceptionOrNull()?.message ?: "No se pudo guardar localmente")
+                                        return@launch
+                                    }
+
+                                    // ✅ Registro REAL en Firebase Auth + Firestore (opción B)
+                                    authVm.register(
+                                        email = user.email,
+                                        password = user.password,
+                                        name = user.nombreCompleto
+                                    ) {
+                                        scope.launch {
+                                            snackbarHostState.showSnackbar("Usuario registrado en Firebase ✅")
+
+                                            // limpiar formulario
+                                            rut = ""
+                                            nombre = ""
+                                            apellidoPaterno = ""
+                                            apellidoMaterno = ""
+                                            comuna = ""
+                                            telefono = ""
+                                            email = ""
+                                            password = ""
+                                            confirmPassword = ""
+                                            ayudasSeleccionadas.clear()
+
+                                            // opcional: volver a login
+                                            onLoginClick()
+                                        }
                                     }
                                 }
                             },
@@ -412,7 +450,6 @@ fun RegistroScreen(
 
                 Spacer(Modifier.height(16.dp))
 
-                // Tabla
                 Text(text = "Usuarios registrados (Tabla)", fontWeight = FontWeight.Bold, color = TextDark)
                 if (UserStore.users.isEmpty()) {
                     Text(text = "Aun no hay usuarios", color = TextMuted)
@@ -422,10 +459,14 @@ fun RegistroScreen(
 
                 Spacer(Modifier.height(16.dp))
 
-                // Grilla
                 Text(text = "Usuarios (Grilla)", fontWeight = FontWeight.Bold, color = TextDark)
                 if (UserStore.users.isNotEmpty()) {
-                    UserGrid(users = UserStore.users)
+                    UserGrid(
+                        users = UserStore.users,
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .height(260.dp)
+                    )
                 }
 
                 Spacer(Modifier.height(24.dp))

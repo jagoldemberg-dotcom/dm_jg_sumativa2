@@ -104,7 +104,13 @@ fun RecuperarScreen(
                             value = email,
                             onValueChange = { email = it },
                             label = "Correo de la cuenta",
-                            leadingIcon = { Icon(Icons.Default.Email, contentDescription = null, tint = BandGreen) }
+                            leadingIcon = {
+                                Icon(
+                                    Icons.Default.Email,
+                                    contentDescription = null,
+                                    tint = BandGreen
+                                )
+                            }
                         )
 
                         Spacer(Modifier.height(12.dp))
@@ -149,16 +155,16 @@ fun RecuperarScreen(
                                 scope.launch {
                                     if (email.isBlank()) {
                                         snackbarHostState.showSnackbar("Ingresa un correo")
-                                    } else {
-                                        if (!Validators.isValidEmail(email)) {
-                                            snackbarHostState.showSnackbar("Correo invalido")
-                                            return@launch
-                                        }
-
-                                        snackbarHostState.showSnackbar(
-                                            "Solicitud enviada por $canalSeleccionado - $tipoSeleccionado (simulado)"
-                                        )
+                                        return@launch
                                     }
+                                    if (!Validators.isValidEmail(email)) {
+                                        snackbarHostState.showSnackbar("Correo invalido")
+                                        return@launch
+                                    }
+
+                                    snackbarHostState.showSnackbar(
+                                        "Solicitud enviada por $canalSeleccionado - $tipoSeleccionado (simulado)"
+                                    )
                                 }
                             },
                             modifier = Modifier
@@ -213,7 +219,8 @@ private fun ComboBoxSpinner(
                     a.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item)
                 }
 
-                val initialIndex = currentItems.value.indexOf(currentSelected.value).coerceAtLeast(0)
+                val initialIndex =
+                    currentItems.value.indexOf(currentSelected.value).coerceAtLeast(0)
                 setSelection(initialIndex, false)
 
                 onItemSelectedListener = object : AdapterView.OnItemSelectedListener {

@@ -10,11 +10,15 @@ import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.imePadding
+import androidx.compose.foundation.layout.navigationBarsPadding
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Email
 import androidx.compose.material.icons.filled.Lock
@@ -33,6 +37,8 @@ import androidx.compose.material3.SnackbarHostState
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -42,11 +48,12 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.Color.Companion.Blue
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
+import androidx.lifecycle.viewmodel.compose.viewModel
 import com.example.semana1pv.R
-import com.example.semana1pv.data.UserStore
 import com.example.semana1pv.ui.componentes.AppOutlinedTextField
 import com.example.semana1pv.ui.componentes.AppPasswordField
 import com.example.semana1pv.ui.componentes.LinkText
@@ -55,14 +62,10 @@ import com.example.semana1pv.ui.theme.BandGreen
 import com.example.semana1pv.ui.theme.BordernSoft
 import com.example.semana1pv.ui.theme.TextDark
 import com.example.semana1pv.ui.theme.TextMuted
+import com.example.semana1pv.ui.viewmodel.AuthState
+import com.example.semana1pv.ui.viewmodel.AuthViewModel
 import com.example.semana1pv.util.Validators
 import kotlinx.coroutines.launch
-import androidx.compose.foundation.rememberScrollState
-import androidx.compose.foundation.verticalScroll
-import androidx.compose.foundation.layout.imePadding
-import androidx.compose.foundation.layout.navigationBarsPadding
-import androidx.compose.ui.graphics.Color.Companion.Blue
-
 
 @Composable
 fun LoginScreen(
@@ -75,7 +78,17 @@ fun LoginScreen(
     var rememberMe by remember { mutableStateOf(false) }
 
     val snackbarHostState = remember { SnackbarHostState() }
+    val authVm: AuthViewModel = viewModel()
+    val authState by authVm.state.collectAsState()
     val scope = rememberCoroutineScope()
+
+    // Mensajes de error desde el ViewModel
+    LaunchedEffect(authState) {
+        when (authState) {
+            is AuthState.Error -> snackbarHostState.showSnackbar((authState as AuthState.Error).message)
+            else -> Unit
+        }
+    }
 
     Surface(modifier = Modifier.fillMaxSize(), color = BackgroundLigth) {
         Scaffold(
@@ -92,8 +105,7 @@ fun LoginScreen(
                     .padding(18.dp),
                 horizontalAlignment = Alignment.CenterHorizontally
             ) {
-
-            Spacer(modifier = Modifier.height(5.dp))
+                Spacer(modifier = Modifier.height(5.dp))
 
                 Card(
                     shape = CircleShape,
@@ -197,7 +209,6 @@ fun LoginScreen(
 
                         Spacer(modifier = Modifier.height(8.dp))
 
-                        // Check list (minimo 1) para accesibilidad/UX
                         Row(
                             modifier = Modifier
                                 .fillMaxWidth()
@@ -226,25 +237,21 @@ fun LoginScreen(
                         Button(
                             onClick = {
                                 scope.launch {
-                                    if (email.isBlank() || password.isBlank()) {
-                                        snackbarHostState.showSnackbar("Completa correo y contrasena")
+                                    val cleanEmail = email.trim().lowercase()
+                                    val cleanPass = password
+
+                                    if (cleanEmail.isBlank() || cleanPass.isBlank()) {
+                                        snackbarHostState.showSnackbar("Completa correo y contraseña")
+                                        return@launch
+                                    }
+                                    if (!Validators.isValidEmail(cleanEmail)) {
+                                        snackbarHostState.showSnackbar("Correo inválido")
                                         return@launch
                                     }
 
-                                    if (!Validators.isValidEmail(email)) {
-                                        snackbarHostState.showSnackbar("Correo invalido")
-                                        return@launch
-                                    }
-                                    if (UserStore.users.isEmpty()) {
-                                        snackbarHostState.showSnackbar("No hay usuarios registrados. Crea uno en Registro")
-                                        return@launch
-                                    }
-                                    val ok = UserStore.validateLogin(email.trim(), password)
-                                    if (ok) {
-                                        snackbarHostState.showSnackbar("Login correcto")
+                                    // ✅ Login REAL en Firebase
+                                    authVm.login(cleanEmail, cleanPass) {
                                         onLoginSuccess()
-                                    } else {
-                                        snackbarHostState.showSnackbar("Credenciales incorrectas")
                                     }
                                 }
                             },

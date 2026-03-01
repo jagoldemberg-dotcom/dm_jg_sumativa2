@@ -1,32 +1,65 @@
-# Sumativa 2 - Semana 5 (Integrando Kotlin )
+# Sumativa 3 - Semana 8
+**Preparación de una aplicación móvil Android/Kotlin para su distribución**
 
+Proyecto base: `dm_jg_sumativa2-main` (Compose + Navigation).  
+Objetivo: integrar **FrontEnd + BackEnd (Firebase)**, agregar **Escribir / Hablar / BuscarDispositivo (geolocalización + Fragment + ViewGroup)**, **ContentProvider**, **Widget**, **tests** y preparar **APK firmado** para publicar en una plataforma gratuita.
 
-## Requisitos cubiertos (resumen)
-- SplashScreen
-- Login (correo + contrasena) con validacion contra usuarios registrados
-- Registro de usuario con:
-  - Inputs (text fields)
-  - Boton
-  - Links (navegacion)
-  - ComboBox (Region)
-  - Check list (ayudas visuales)
-  - Radio buttons (modo de lectura)
-  - Tabla y Grilla para mostrar usuarios registrados
-  - Maximo 5 usuarios almacenados en memoria
-- Recuperar contrasena (simulado) con ComboBox y Radio buttons
-- Home (grilla de acciones rapidas) + verificacion simple de conectividad
+## Funcionalidades implementadas
+- **Login / Registro / Recuperar contraseña** (Firebase Auth).
+- **Home Menú** con accesibilidad (botones grandes).
+- **Escribir**:
+  - Ingreso de texto grande.
+  - Botón **Hablar** (TextToSpeech).
+  - Historial local (Room) que además se expone con **ContentProvider**.
+  - Guarda frase en Firestore (si Firebase está configurado).
+- **Hablar**:
+  - Dictado con `RecognizerIntent`.
+  - Guarda frase local (Room) y remota (Firestore).
+- **Buscar Dispositivo**:
+  - Se abre en una **Activity con ViewGroup + Fragment** (`DeviceSearchActivity` + `DeviceSearchFragment`).
+  - Geolocalización (FusedLocationProviderClient) para registrar y filtrar dispositivos cercanos (filtro local por distancia).
+- **Widget**:
+  - `LastPhraseWidget` muestra la última frase guardada.
 
-## Como ejecutar
-1. Abrir la carpeta del proyecto en Android Studio.
-2. Sincronizar Gradle.
-3. Ejecutar en emulador o dispositivo (minSdk 24).
+## Requisitos técnicos (dónde mirar)
+- Firebase: `data/firebase/*`
+- Room (persistencia local): `data/local/*`
+- ContentProvider: `provider/PhraseContentProvider.kt`
+- Widget: `widget/LastPhraseWidget.kt` + `res/xml/last_phrase_widget_info.xml`
+- Fragment + ViewGroup: `device/*` + `res/layout/activity_device_search.xml`
+- Views/Screens: `ui/screens/*`
+- Navegación: `navigation/NavGraph.kt`
+- Tests: `app/src/test/java/.../ValidatorsTest.kt`
 
-## Notas
-- El almacen de usuarios es en memoria (`UserStore`), no persiste al cerrar la app.
-- Las integraciones con redes sociales y recuperacion son simuladas.
+## Configuración Firebase (obligatoria)
+1. Crear proyecto en Firebase.
+2. Agregar app Android con package: **com.example.semana1pv**
+3. Descargar `google-services.json` y reemplazar el archivo:
+   - `app/google-services.json`
+4. En Firebase habilitar:
+   - Authentication -> **Email/Password**
+   - Firestore Database (modo test o reglas controladas)
 
+> Nota: este repo trae un `google-services.json` de **placeholder** solo para que el proyecto compile.
+> Debes reemplazarlo por el real antes de probar Auth/Firestore.
 
-## Kotlin 
-- `UserStore` mantiene un `Array<User?>` de tamaño 5 como fuente de verdad (usuarios + contraseñas).
-- La UI usa una lista observable para refrescar Tabla/Grilla.
-- Validaciones simples en `Validators.kt`.
+## Generar APK firmado
+Android Studio:
+1. **Build > Generate Signed Bundle / APK...**
+2. Elegir **APK**
+3. Crear o seleccionar **Keystore**
+4. Seleccionar `release`
+5. Generar y ubicar el APK en: `app/release/app-release.apk`
+
+## Publicar APK (simulando Play Store)
+Opciones gratuitas típicas:
+- **GitHub Releases** (recomendado): subir `app-release.apk` y compartir el link.
+- **Google Drive / OneDrive**: subir archivo y compartir con permiso de descarga.
+
+## Permisos relevantes
+En `AndroidManifest.xml`:
+- INTERNET
+- ACCESS_FINE_LOCATION / ACCESS_COARSE_LOCATION
+- RECORD_AUDIO
+- ACCESS_NETWORK_STATE
+
